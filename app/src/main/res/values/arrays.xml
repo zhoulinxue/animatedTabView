@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="tab_item_array">
+        <item>首页</item>
+        <item>发现</item>
+        <item>商品</item>
+        <item>我的</item>
+    </array>
+</resources>
