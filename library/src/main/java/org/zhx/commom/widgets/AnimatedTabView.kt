@@ -46,7 +46,6 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
         }
 
     }
-
     private val mTextPaint: Paint by lazy {
         var paint = Paint()
         paint.color = Color.WHITE
@@ -54,14 +53,12 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
         paint.textSize = 30f
         paint
     }
-
     private val mBackgroundPaint: Paint by lazy {
         var paint = Paint()
         paint.color = resources.getColor(R.color.black_30)
         paint.style = Paint.Style.FILL
         paint
     }
-
     private val TAG = AnimatedTabView::class.java.simpleName
 
     //item  count
@@ -88,7 +85,26 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
     private var targetX = 0
     private var currentPosition = 1
     private var mLastPosition = currentPosition
-    private var valueAnimator: ValueAnimator? = null
+    private val MAX_ALPHA = 255
+    private var currentAlpha = MAX_ALPHA
+    private val valueAnimator: ValueAnimator by lazy {
+        var valueAnimator = ValueAnimator()
+        valueAnimator?.addUpdateListener(this)
+        valueAnimator?.addListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationEnd(animation: Animator) {
+                mProcess = 1f
+                mProcessValus = 0f
+                currentX = targetX
+            }
+
+            override fun onAnimationStart(animation: Animator) {
+                mLastPosition = currentPosition
+                currentPosition = getCurrentPositionByX(targetX)
+                Log.e(TAG, "$mLastPosition   current : $currentPosition")
+            }
+        })
+        valueAnimator
+    }
     private val textRect = Rect()
     private val ANIMATION_DURATION: Long = 400
     private var mBuilder: Builder? = null
@@ -133,12 +149,14 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
         for (i in 1 until itemCount + 1) {
             val bitmap = sparseArray[i]
             if (currentPosition != i && mLastPosition != i) {
+                mBitmapPaint.alpha = MAX_ALPHA
                 canvas.drawBitmap(
                     bitmap, getXByPosition(i, bitmap.width / 2),
                     (mRadius - bitmap.height / 2).toFloat(),
                     mBitmapPaint
                 )
             } else if (currentPosition != i && mLastPosition == i) {
+                mBitmapPaint.alpha = currentAlpha
                 canvas.drawBitmap(
                     bitmap,
                     getXByPosition(i, bitmap.width / 2),
@@ -146,6 +164,7 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
                     mBitmapPaint
                 )
             } else if (currentPosition == i) {
+                mTextPaint.alpha = currentAlpha
                 var text = mBuilder?.arrays!![i - 1]
                 mTextPaint?.getTextBounds(text, 0, text.length, textRect)
                 canvas.drawText(
@@ -153,54 +172,54 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
                     (mRadius + textRect.height() / 2) * mProcess,
                     mTextPaint!!
                 )
-                if (mProcess != 1f) canvas.drawBitmap(
-                    bitmap, getXByPosition(i, bitmap.width / 2),
-                    mRadius - bitmap.height / 2 + mProcess * mHeight,
-                    mBitmapPaint
-                )
+                if (mProcess != 1f) {
+                    mBitmapPaint.alpha = MAX_ALPHA - currentAlpha
+                    canvas.drawBitmap(
+                        bitmap, getXByPosition(i, bitmap.width / 2),
+                        mRadius - bitmap.height / 2 + mProcess * mHeight,
+                        mBitmapPaint
+                    )
+                }
             }
         }
     }
 
+    /**
+     *get current position by x
+     */
     private fun getXByPosition(i: Int, offSet: Int): Float {
         return (mRadius * 2 * i - mRadius - offSet).toFloat()
     }
 
-    private fun moveAnimation(toTargetX: Int) {
-        targetX = toTargetX
-        val totalValus = toTargetX - currentX
-        valueAnimator = ValueAnimator.ofFloat(0f, totalValus.toFloat())
-        valueAnimator?.duration = ANIMATION_DURATION
-        valueAnimator?.addUpdateListener(this)
-        valueAnimator?.addListener(object : AnimatorListenerAdapter() {
-            override fun onAnimationEnd(animation: Animator) {
-                mProcess = 1f
-                mProcessValus = 0f
-                currentX = targetX
-            }
-
-            override fun onAnimationStart(animation: Animator) {
-                mLastPosition = currentPosition
-                currentPosition = getCurrentPositionByX(targetX)
-                Log.e(TAG, "$mLastPosition   current : $currentPosition")
-            }
-        })
-        valueAnimator?.start()
-    }
-
+    /**
+     * get current position by x
+     */
     private fun getCurrentPositionByX(targetX: Int): Int {
         return targetX / mHeight + 1
     }
+
+    /**
+     * anmate view
+     */
+    private fun moveAnimation(toTargetX: Int) {
+        targetX = toTargetX
+        val totalValus = toTargetX - currentX
+        valueAnimator.setFloatValues(0f, totalValus.toFloat())
+        valueAnimator?.duration = ANIMATION_DURATION
+        valueAnimator?.start()
+    }
+
 
     override fun onAnimationUpdate(animation: ValueAnimator) {
         mProcessValus = animation.animatedValue as Float
         if (mProcessValus != 0f) {
             mProcess = mProcessValus / (targetX - currentX)
+            currentAlpha = (255 * mProcess).toInt();
             invalidate()
         }
     }
 
-    var mGestureDetector: GestureDetector =
+    private var mGestureDetector: GestureDetector =
         GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
             override fun onSingleTapUp(e: MotionEvent?): Boolean {
                 val clickX: Int = getTargetX(e!!.x)
