@@ -80,7 +80,7 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
     private var mCicleRectF: RectF? = null
 
     // animation process
-    private var mProcess = 0f
+    private var mProcess = 1f
 
     // translation valus
     private var mProcessValus = 0f
@@ -134,35 +134,36 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
             val bitmap = sparseArray[i]
             if (currentPosition != i && mLastPosition != i) {
                 canvas.drawBitmap(
-                    bitmap,
-                    (mRadius * 2 * i - mRadius - bitmap.width / 2).toFloat(),
+                    bitmap, getXByPosition(i, bitmap.width / 2),
                     (mRadius - bitmap.height / 2).toFloat(),
                     mBitmapPaint
                 )
             } else if (currentPosition != i && mLastPosition == i) {
                 canvas.drawBitmap(
                     bitmap,
-                    (mRadius * 2 * i - mRadius - bitmap.width / 2).toFloat(),
-                    if (mProcess == 0f) mRadius - bitmap.height / 2.toFloat() else mHeight - bitmap.height * mProcess,
+                    getXByPosition(i, bitmap.width / 2),
+                    mRadius - bitmap.height / 2 + bitmap.height * (1 - mProcess),
                     mBitmapPaint
                 )
             } else if (currentPosition == i) {
                 var text = mBuilder?.arrays!![i - 1]
                 mTextPaint?.getTextBounds(text, 0, text.length, textRect)
                 canvas.drawText(
-                    text,
-                    (mRadius * 2 * i - mRadius - textRect.width() / 2).toFloat(),
-                    if (mProcess == 0f) mRadius + textRect.height() / 2.toFloat() else (mRadius + textRect.height() / 2) * mProcess,
+                    text, getXByPosition(i, textRect.width() / 2),
+                    (mRadius + textRect.height() / 2) * mProcess,
                     mTextPaint!!
                 )
-                if (mProcess != 0f) canvas.drawBitmap(
-                    bitmap,
-                    (mRadius * 2 * i - mRadius - bitmap.width / 2).toFloat(),
+                if (mProcess != 1f) canvas.drawBitmap(
+                    bitmap, getXByPosition(i, bitmap.width / 2),
                     mRadius - bitmap.height / 2 + mProcess * mHeight,
                     mBitmapPaint
                 )
             }
         }
+    }
+
+    private fun getXByPosition(i: Int, offSet: Int): Float {
+        return (mRadius * 2 * i - mRadius - offSet).toFloat()
     }
 
     private fun moveAnimation(toTargetX: Int) {
@@ -173,7 +174,7 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
         valueAnimator?.addUpdateListener(this)
         valueAnimator?.addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationEnd(animation: Animator) {
-                mProcess = 0f
+                mProcess = 1f
                 mProcessValus = 0f
                 currentX = targetX
             }
@@ -200,10 +201,10 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
     }
 
     var mGestureDetector: GestureDetector =
-        GestureDetector(object : GestureDetector.SimpleOnGestureListener() {
+        GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
             override fun onSingleTapUp(e: MotionEvent?): Boolean {
                 val clickX: Int = getTargetX(e!!.x)
-                Log.e(TAG, currentX.toString() + "  click x " + clickX)
+                Log.e(TAG, "$currentX  click x $clickX")
                 if (!isMoving() && currentX != clickX) {
                     moveAnimation(clickX)
                 }
