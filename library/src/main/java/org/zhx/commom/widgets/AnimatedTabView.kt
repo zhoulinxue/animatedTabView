@@ -136,9 +136,12 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
         if (itemCount == 0) {
             return
         }
+        if (mBuilder?.backgroundColor != 0) {
+            mBuilder?.backgroundColor?.let { mBackgroundPaint.color = it }
+        }
         canvas.drawRoundRect(
             mCicleRectF!!, mRadius.toFloat(), mRadius.toFloat(),
-            mBackgroundPaint!!
+            mBackgroundPaint
         ) // background
         canvas.drawCircle(
             currentX + mProcessValus,
@@ -160,6 +163,9 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
                     mBitmapPaint
                 )
             } else if (currentPosition != i && mLastPosition == i) {
+                if (mBuilder?.selectedTextColor != 0) {
+                    mTextPaint.color = mBuilder?.selectedTextColor!!
+                }
                 mTextPaint.alpha = MAX_ALPHA - currentAlpha
                 canvas.drawText(
                     text,
@@ -174,6 +180,9 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
                     mBitmapPaint
                 )
             } else if (currentPosition == i) {
+                if (mBuilder?.selectedTextColor != 0) {
+                    mTextPaint.color = mBuilder?.selectedTextColor!!
+                }
                 mTextPaint.alpha = currentAlpha
                 canvas.drawText(
                     text, getXByPosition(i, textRect.width() / 2),
@@ -250,8 +259,21 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
         var height = 120
         var width = 0
         var click: OnItemClick? = null
+        var backgroundColor: Int = 0
+        var selectedTextColor: Int = 0
         lateinit var arrays: Array<String>
         lateinit var images: Array<Int>
+
+        fun setBackgroundColor(color: Int): Builder {
+            backgroundColor = color
+            return this
+        }
+
+        fun setSelectedTextColor(color: Int): Builder {
+            selectedTextColor = color
+            return this
+        }
+
         fun setWidth(width: Int): Builder {
             this.width = width
             return this

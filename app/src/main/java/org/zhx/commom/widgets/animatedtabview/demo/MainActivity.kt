@@ -1,5 +1,6 @@
 package org.zhx.commom.widgets.animatedtabview.demo
 
+import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import kotlinx.android.synthetic.main.activity_main.*
@@ -20,6 +21,8 @@ class MainActivity : AppCompatActivity() {
         builder.height = 120
         builder.arrays = resources.getStringArray(R.array.tab_item_array)
         builder.images = images
+//        builder.selectedTextColor = Color.GREEN
+//        builder.backgroundColor = Color.BLACK
         var view = builder.build()
         test_table_container.addView(view)
     }
