@@ -163,8 +163,10 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
                     mBitmapPaint
                 )
             } else if (currentPosition != i && mLastPosition == i) {
-                if (mBuilder?.selectedTextColor != 0) {
-                    mTextPaint.color = mBuilder?.selectedTextColor!!
+                if (mBuilder?.unSelectedTextColor != 0) {
+                    mTextPaint.color = mBuilder?.unSelectedTextColor!!
+                } else {
+                    mTextPaint.color = Color.WHITE
                 }
                 mTextPaint.alpha = MAX_ALPHA - currentAlpha
                 canvas.drawText(
@@ -261,6 +263,7 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
         var click: OnItemClick? = null
         var backgroundColor: Int = 0
         var selectedTextColor: Int = 0
+        var unSelectedTextColor: Int = 0
         lateinit var arrays: Array<String>
         lateinit var images: Array<Int>
 
@@ -271,6 +274,11 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
 
         fun setSelectedTextColor(color: Int): Builder {
             selectedTextColor = color
+            return this
+        }
+
+        fun setUnSelectedTextColor(color: Int): Builder {
+            unSelectedTextColor = color
             return this
         }
 

@@ -21,8 +21,9 @@ class MainActivity : AppCompatActivity() {
         builder.height = 120
         builder.arrays = resources.getStringArray(R.array.tab_item_array)
         builder.images = images
-//        builder.selectedTextColor = Color.GREEN
-//        builder.backgroundColor = Color.BLACK
+        builder.selectedTextColor = Color.GREEN  // default Color.WHITE
+        builder.unSelectedTextColor = Color.WHITE // default Color.WHITE
+//        builder.backgroundColor = Color.BLACK  // default #30000000
         var view = builder.build()
         test_table_container.addView(view)
     }
