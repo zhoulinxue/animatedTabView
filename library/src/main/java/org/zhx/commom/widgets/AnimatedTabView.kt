@@ -41,8 +41,8 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
      */
     private val mCiclePaint: Paint by lazy {
         Paint().also {
-            it.color = resources.getColor(R.color.black_30)
-            it.style = Paint.Style.FILL
+            it.color = resources.getColor(R.color.white)
+            it.style = Paint.Style.STROKE
         }
 
     }
@@ -146,8 +146,12 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
             (mRadius - 1).toFloat(),
             mCiclePaint
         ) //item cicle
+
+
         for (i in 1 until itemCount + 1) {
             val bitmap = sparseArray[i]
+            val text = mBuilder?.arrays!![i - 1]
+            mTextPaint?.getTextBounds(text, 0, text.length, textRect)
             if (currentPosition != i && mLastPosition != i) {
                 mBitmapPaint.alpha = MAX_ALPHA
                 canvas.drawBitmap(
@@ -156,6 +160,12 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
                     mBitmapPaint
                 )
             } else if (currentPosition != i && mLastPosition == i) {
+                mTextPaint.alpha = MAX_ALPHA - currentAlpha
+                canvas.drawText(
+                    text,
+                    getXByPosition(i, textRect.width() / 2),
+                    (mRadius + textRect.height() / 2) * (1 - mProcess), mTextPaint
+                )
                 mBitmapPaint.alpha = currentAlpha
                 canvas.drawBitmap(
                     bitmap,
@@ -165,12 +175,10 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
                 )
             } else if (currentPosition == i) {
                 mTextPaint.alpha = currentAlpha
-                var text = mBuilder?.arrays!![i - 1]
-                mTextPaint?.getTextBounds(text, 0, text.length, textRect)
                 canvas.drawText(
                     text, getXByPosition(i, textRect.width() / 2),
                     (mRadius + textRect.height() / 2) * mProcess,
-                    mTextPaint!!
+                    mTextPaint
                 )
                 if (mProcess != 1f) {
                     mBitmapPaint.alpha = MAX_ALPHA - currentAlpha
