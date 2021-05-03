@@ -101,6 +101,9 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
                 mLastPosition = currentPosition
                 currentPosition = getCurrentPositionByX(targetX)
                 Log.e(TAG, "$mLastPosition   current : $currentPosition")
+                if (mLastPosition != currentPosition) {
+                    mBuilder?.onItemClick?.onItemClick(currentPosition - 1)
+                }
             }
         })
         valueAnimator
@@ -260,12 +263,17 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
     class Builder(private val context: Context) {
         var height = 120
         var width = 0
-        var click: OnItemClick? = null
+        var onItemClick: OnItemClick? = null
         var backgroundColor: Int = 0
         var selectedTextColor: Int = 0
         var unSelectedTextColor: Int = 0
         lateinit var arrays: Array<String>
         lateinit var images: Array<Int>
+
+        fun setOnItemClick(itemClick: OnItemClick): Builder {
+            this.onItemClick = itemClick
+            return this
+        }
 
         fun setBackgroundColor(color: Int): Builder {
             backgroundColor = color
@@ -293,7 +301,7 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
         }
 
         fun setClick(click: OnItemClick?): Builder {
-            this.click = click
+            this.onItemClick = click
             return this
         }
 

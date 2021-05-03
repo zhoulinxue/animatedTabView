@@ -3,10 +3,11 @@ package org.zhx.commom.widgets.animatedtabview.demo
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import kotlinx.android.synthetic.main.activity_main.*
 import org.zhx.commom.widgets.AnimatedTabView
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), AnimatedTabView.OnItemClick {
     private val images = arrayOf(
         R.drawable.ic_home_white_36dp,
         R.drawable.ic_visibility_white_36dp,
@@ -24,7 +25,12 @@ class MainActivity : AppCompatActivity() {
         builder.selectedTextColor = Color.GREEN  // default Color.WHITE
         builder.unSelectedTextColor = Color.WHITE // default Color.WHITE
 //        builder.backgroundColor = Color.BLACK  // default #30000000
+        builder.setOnItemClick(this)
         var view = builder.build()
         test_table_container.addView(view)
+    }
+
+    override fun onItemClick(position: Int) {
+        Log.e("AnimatedTabView", "itemclick    $position")
     }
 }
