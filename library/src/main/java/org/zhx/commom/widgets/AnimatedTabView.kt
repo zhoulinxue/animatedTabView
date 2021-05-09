@@ -70,8 +70,14 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
     // item height
     private var mHeight = mRadius * 2
 
+    // item height
+    private var mItemHeight = mRadius * 2
+
     //view width
-    private var mWidth = mHeight * itemCount
+    private var mWidth = mItemHeight * itemCount
+
+    //view width
+    private var mItemWidth = mItemHeight * itemCount
 
     //background Rect
     private var mCicleRectF: RectF? = null
@@ -112,12 +118,9 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
     private val ANIMATION_DURATION: Long = 400
     private var mBuilder: Builder? = null
     private val sparseArray = SparseArray<Bitmap>()
+
     private fun getTargetX(x: Float): Int {
-        return if (x <= mHeight) {
-            mHeight - mRadius
-        } else {
-            (x / mHeight).toInt() * mHeight + mRadius
-        }
+        return (x / mItemWidth).toInt() * mItemWidth + mItemWidth / 2
     }
 
     private fun isMoving(): Boolean {
@@ -129,9 +132,9 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
         mWidth = WidgetUtil.measureWidth(widthMeasureSpec, mWidth)
         mHeight = WidgetUtil.measureHeight(heightMeasureSpec, mHeight)
         setMeasuredDimension(mWidth, mHeight)
-        mRadius = mHeight / 2
         mCicleRectF = RectF(0f, 0f, mWidth.toFloat(), mHeight.toFloat())
         currentX = getXByPosition(currentPosition, 0).toInt()
+        mItemWidth = mWidth / itemCount
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -149,7 +152,7 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
                 mBitmapPaint.alpha = MAX_ALPHA
                 canvas.drawBitmap(
                     bitmap, getXByPosition(i, bitmap.width / 2),
-                    (mRadius - bitmap.height / 2).toFloat(),
+                    (mHeight / 2 - bitmap.height / 2).toFloat(),
                     mBitmapPaint
                 )
             } else if (currentPosition != i && mLastPosition == i) {
@@ -162,13 +165,13 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
                 canvas.drawText(
                     text,
                     getXByPosition(i, textRect.width() / 2),
-                    (mRadius + textRect.height() / 2) * (1 - mProcess), mTextPaint
+                    (mHeight / 2 + textRect.height() / 2) * (1 - mProcess), mTextPaint
                 )
                 mBitmapPaint.alpha = currentAlpha
                 canvas.drawBitmap(
                     bitmap,
                     getXByPosition(i, bitmap.width / 2),
-                    mRadius - bitmap.height / 2 + bitmap.height * (1 - mProcess),
+                    mHeight / 2 - bitmap.height / 2 + bitmap.height * (1 - mProcess),
                     mBitmapPaint
                 )
             } else if (currentPosition == i) {
@@ -178,14 +181,14 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
                 mTextPaint.alpha = currentAlpha
                 canvas.drawText(
                     text, getXByPosition(i, textRect.width() / 2),
-                    (mRadius + textRect.height() / 2) * mProcess,
+                    (mHeight / 2 + textRect.height() / 2) * mProcess,
                     mTextPaint
                 )
                 if (mProcess != 1f) {
                     mBitmapPaint.alpha = MAX_ALPHA - currentAlpha
                     canvas.drawBitmap(
                         bitmap, getXByPosition(i, bitmap.width / 2),
-                        mRadius - bitmap.height / 2 + mProcess * mHeight,
+                        mHeight / 2 - bitmap.height / 2 + mProcess * mHeight,
                         mBitmapPaint
                     )
                 }
@@ -196,7 +199,7 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
     private fun drawSelctedTag(canvas: Canvas) {
         canvas.drawCircle(
             currentX + mProcessValus,
-            mRadius.toFloat(),
+            mHeight / 2.toFloat(),
             (mRadius - 1).toFloat(),
             mCiclePaint
         ) //item cicle
@@ -225,7 +228,7 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
      * get current position by x
      */
     private fun getCurrentPositionByX(targetX: Int): Int {
-        return targetX / (mWidth/itemCount) + 1
+        return targetX / (mWidth / itemCount) + 1
     }
 
     /**
@@ -338,7 +341,7 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
         }
     }
 
-    private fun setBuilder(builder: Builder?) {
+    public fun setBuilder(builder: Builder?) {
         mBuilder = builder
         if (builder != null) notifyParamchanage()
     }
@@ -348,13 +351,14 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
             return
         }
         itemCount = mBuilder!!.arrays.size.coerceAtMost(mBuilder!!.images.size)
-        mHeight = mBuilder!!.height
+        mItemHeight = mBuilder!!.height
+        mHeight = mItemHeight + paddingTop + paddingBottom
         mWidth = if (mBuilder!!.width == 0) {
-            mHeight * itemCount
+            mItemHeight * itemCount
         } else {
             mBuilder!!.width
         }
-        mRadius = mHeight / 2
+        mRadius = mItemHeight / 2
         for (i in 0 until itemCount) {
             val bitmap = sparseArray[i + 1]
             if (bitmap == null) {

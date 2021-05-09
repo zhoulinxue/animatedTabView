@@ -19,4 +19,13 @@
         android:layout_height="wrap_content"
         android:text="随机tab" />
 
+    <org.zhx.commom.widgets.AnimatedTabView
+        android:id="@+id/bottom_tabView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="@color/black_30"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp" />
+
 </RelativeLayout>

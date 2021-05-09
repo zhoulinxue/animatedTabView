@@ -26,13 +26,27 @@ class MainActivity : AppCompatActivity(), AnimatedTabView.OnItemChangeLisenter {
         builder.images = images
         builder.selectedTextColor = Color.GREEN  // default Color.WHITE
         builder.unSelectedTextColor = Color.WHITE // default Color.WHITE
-        builder.backgroundColor = resources.getColor(R.color.black_30) // default #30000000   不设置 就不绘制 背景
+        builder.backgroundColor =
+            resources.getColor(R.color.black_30) // default #30000000   不设置 就不绘制 背景
         builder.setOnItemClick(this)
         var view: AnimatedTabView = builder.build()
         test_table_container.addView(view)
         tab_btn.setOnClickListener {
-            view.setSelection(Random.nextInt(images.size + 1) - 1)
+            var position = Random.nextInt(images.size + 1) - 1
+            view.setSelection(position)
+            bottom_tabView.setSelection(position)
         }
+
+        var builder2 = AnimatedTabView.Builder(this)
+        builder2.height = 120
+        builder2.arrays = resources.getStringArray(R.array.tab_item_array)
+        builder2.images = images
+        builder2.selectedTextColor = Color.GREEN  // default Color.WHITE
+        builder2.unSelectedTextColor = Color.WHITE // default Color.WHITE
+//        builder2.backgroundColor =resources.getColor(R.color.black_30) // default #30000000   不设置 就不绘制 背景
+        builder2.setOnItemClick(this)
+
+        bottom_tabView.setBuilder(builder2)
     }
 
     override fun onItemSelected(position: Int) {
