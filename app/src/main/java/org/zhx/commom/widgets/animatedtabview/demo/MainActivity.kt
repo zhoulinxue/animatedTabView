@@ -32,7 +32,7 @@ class MainActivity : AppCompatActivity(), AnimatedTabView.OnItemChangeLisenter {
         var view: AnimatedTabView = builder.build()
         test_table_container.addView(view)
         tab_btn.setOnClickListener {
-            var position = Random.nextInt(images.size + 1) - 1
+            var position = Random.nextInt(images.size + 1)
             view.setSelection(position)
             bottom_tabView.setSelection(position)
         }
