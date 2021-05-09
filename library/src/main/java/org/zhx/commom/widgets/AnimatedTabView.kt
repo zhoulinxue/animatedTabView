@@ -102,7 +102,7 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
                 currentPosition = getCurrentPositionByX(targetX)
                 Log.e(TAG, "$mLastPosition   current : $currentPosition")
                 if (mLastPosition != currentPosition) {
-                    mBuilder?.onItemClick?.onItemClick(currentPosition - 1)
+                    mBuilder?.onItemClick?.onItemSelected(currentPosition - 1)
                 }
             }
         })
@@ -131,7 +131,7 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
         setMeasuredDimension(mWidth, mHeight)
         mRadius = mHeight / 2
         mCicleRectF = RectF(0f, 0f, mWidth.toFloat(), mHeight.toFloat())
-        currentX = mRadius
+        currentX = getXByPosition(currentPosition, 0).toInt()
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -139,21 +139,8 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
         if (itemCount == 0) {
             return
         }
-        if (mBuilder?.backgroundColor != 0) {
-            mBuilder?.backgroundColor?.let { mBackgroundPaint.color = it }
-        }
-        canvas.drawRoundRect(
-            mCicleRectF!!, mRadius.toFloat(), mRadius.toFloat(),
-            mBackgroundPaint
-        ) // background
-        canvas.drawCircle(
-            currentX + mProcessValus,
-            mRadius.toFloat(),
-            (mRadius - 1).toFloat(),
-            mCiclePaint
-        ) //item cicle
-
-
+        drawbackGround(canvas)
+        drawSelctedTag(canvas)
         for (i in 1 until itemCount + 1) {
             val bitmap = sparseArray[i]
             val text = mBuilder?.arrays!![i - 1]
@@ -206,18 +193,39 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
         }
     }
 
+    private fun drawSelctedTag(canvas: Canvas) {
+        canvas.drawCircle(
+            currentX + mProcessValus,
+            mRadius.toFloat(),
+            (mRadius - 1).toFloat(),
+            mCiclePaint
+        ) //item cicle
+    }
+
+    private fun drawbackGround(canvas: Canvas) {
+        if (mBuilder?.backgroundColor != 0) {
+            mBuilder?.backgroundColor?.let {
+                mBackgroundPaint.color = it
+                canvas.drawRoundRect(
+                    mCicleRectF!!, mRadius.toFloat(), mRadius.toFloat(),
+                    mBackgroundPaint
+                ) // background
+            }
+        }
+    }
+
     /**
      *get current position by x
      */
     private fun getXByPosition(i: Int, offSet: Int): Float {
-        return (mRadius * 2 * i - mRadius - offSet).toFloat()
+        return ((mWidth / itemCount) * i - (mWidth / itemCount) / 2 - offSet).toFloat()
     }
 
     /**
      * get current position by x
      */
     private fun getCurrentPositionByX(targetX: Int): Int {
-        return targetX / mHeight + 1
+        return targetX / (mWidth/itemCount) + 1
     }
 
     /**
@@ -225,7 +233,7 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
      */
     private fun moveAnimation(toTargetX: Int) {
         targetX = toTargetX
-        val totalValus = toTargetX - currentX
+        var totalValus = toTargetX - currentX
         valueAnimator.setFloatValues(0f, totalValus.toFloat())
         valueAnimator?.duration = ANIMATION_DURATION
         valueAnimator?.start()
@@ -236,7 +244,7 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
         mProcessValus = animation.animatedValue as Float
         if (mProcessValus != 0f) {
             mProcess = mProcessValus / (targetX - currentX)
-            currentAlpha = (255 * mProcess).toInt();
+            currentAlpha = (MAX_ALPHA * mProcess).toInt()
             invalidate()
         }
     }
@@ -259,18 +267,26 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
         return true
     }
 
+    fun setSelection(position: Int) {
+        var realPosition = position + 1
+        Log.e(TAG, realPosition.toString())
+        if (realPosition in 1 until itemCount + 1 && realPosition != currentPosition && !isMoving()) {
+            moveAnimation(getXByPosition(realPosition, 0).toInt())
+        }
+    }
+
 
     class Builder(private val context: Context) {
         var height = 120
         var width = 0
-        var onItemClick: OnItemClick? = null
+        var onItemClick: OnItemChangeLisenter? = null
         var backgroundColor: Int = 0
         var selectedTextColor: Int = 0
         var unSelectedTextColor: Int = 0
         lateinit var arrays: Array<String>
         lateinit var images: Array<Int>
 
-        fun setOnItemClick(itemClick: OnItemClick): Builder {
+        fun setOnItemClick(itemClick: OnItemChangeLisenter): Builder {
             this.onItemClick = itemClick
             return this
         }
@@ -300,7 +316,7 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
             return this
         }
 
-        fun setClick(click: OnItemClick?): Builder {
+        fun setClick(click: OnItemChangeLisenter?): Builder {
             this.onItemClick = click
             return this
         }
@@ -331,7 +347,7 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
         if (mBuilder!!.arrays == null || mBuilder!!.images == null) {
             return
         }
-        itemCount = Math.min(mBuilder!!.arrays.size, mBuilder!!.images.size)
+        itemCount = mBuilder!!.arrays.size.coerceAtMost(mBuilder!!.images.size)
         mHeight = mBuilder!!.height
         mWidth = if (mBuilder!!.width == 0) {
             mHeight * itemCount
@@ -351,8 +367,8 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
         postInvalidate()
     }
 
-    interface OnItemClick {
-        fun onItemClick(position: Int)
+    interface OnItemChangeLisenter {
+        fun onItemSelected(position: Int)
     }
 
 

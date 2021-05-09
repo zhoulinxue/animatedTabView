@@ -8,9 +8,9 @@ public class WidgetUtil {
         int specSize = View.MeasureSpec.getSize(measureSpec);
         //设置一个默认值，就是这个View的默认宽度为500，这个看我们自定义View的要求
         int result = specSize;
-        if (specMode == View.MeasureSpec.AT_MOST) {//相当于我们设置为wrap_content
+        if (specMode == View.MeasureSpec.AT_MOST || width == -2) {//相当于我们设置为wrap_content
             result = width;
-        } else if (specMode == View.MeasureSpec.EXACTLY) {//相当于我们设置为match_parent或者为一个具体的值
+        } else if (specMode == View.MeasureSpec.EXACTLY || width == -1) {//相当于我们设置为match_parent或者为一个具体的值
             result = specSize;
         }
         return result;
