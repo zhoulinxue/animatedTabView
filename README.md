@@ -2,6 +2,10 @@
 
 ### 1、有问题请 提交 isuue/(QQ:194093798) 谢谢大家 持续更新
 
+[CSDN_blog](https://blog.csdn.net/u013783167/article/details/116357766)
+
+![效果](https://github.com/zhoulinxue/animatedTabView/blob/master/demo.gif)
+
 ## 集成
 ```
 allprojects {
