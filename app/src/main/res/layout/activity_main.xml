@@ -19,6 +19,15 @@
         android:layout_height="wrap_content"
         android:text="随机tab" />
 
+    <Button
+        android:id="@+id/center_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:text="开、关" />
+
+
+
     <org.zhx.commom.widgets.AnimatedTabView
         android:id="@+id/bottom_tabView"
         android:layout_width="match_parent"

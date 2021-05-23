@@ -14,7 +14,7 @@ class MainActivity : AppCompatActivity(), AnimatedTabView.OnItemChangeLisenter {
         R.drawable.ic_home_white_36dp,
         R.drawable.ic_visibility_white_36dp,
         R.drawable.ic_shopping_cart_white_36dp,
-        R.drawable.ic_perm_identity_white_36dp
+//        R.drawable.ic_perm_identity_white_36dp
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,6 +47,11 @@ class MainActivity : AppCompatActivity(), AnimatedTabView.OnItemChangeLisenter {
         builder2.setOnItemClick(this)
 
         bottom_tabView.setBuilder(builder2)
+
+        center_btn.setOnClickListener {
+            // must set backgroundColor
+            view.tocenter()
+        }
     }
 
     override fun onItemSelected(position: Int) {

@@ -89,10 +89,12 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
     private var mProcessValus = 0f
     private var currentX = mRadius
     private var targetX = 0
-    private var currentPosition = 1
-    private var mLastPosition = currentPosition
+    private var targetPosition = 1
+    private var mShowPosition = targetPosition
+    private var mLastPosition = mShowPosition
     private val MAX_ALPHA = 255
     private var currentAlpha = MAX_ALPHA
+    private var state: State = State.OPEN
     private val valueAnimator: ValueAnimator by lazy {
         var valueAnimator = ValueAnimator()
         valueAnimator?.addUpdateListener(this)
@@ -100,22 +102,29 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
             override fun onAnimationEnd(animation: Animator) {
                 mProcess = 1f
                 mProcessValus = 0f
-                currentX = targetX
+                if (State.OPEN == state && isOpen) {
+                    currentX = targetX
+                } else if (State.CLOSE == state && isOpen) {
+                    isOpen = false
+                }
             }
 
             override fun onAnimationStart(animation: Animator) {
-                mLastPosition = currentPosition
-                currentPosition = getCurrentPositionByX(targetX)
-                Log.e(TAG, "$mLastPosition   current : $currentPosition")
-                if (mLastPosition != currentPosition) {
-                    mBuilder?.onItemClick?.onItemSelected(currentPosition - 1)
+                mLastPosition = mShowPosition
+                targetPosition = getCurrentPositionByX(targetX)
+                if (State.OPEN == state && isOpen) {
+                    mShowPosition = targetPosition
+                    Log.e(TAG, "$mLastPosition   current : $mShowPosition")
+                    if (mLastPosition != mShowPosition) {
+                        mBuilder?.onItemClick?.onItemSelected(mShowPosition - 1)
+                    }
                 }
             }
         })
         valueAnimator
     }
     private val textRect = Rect()
-    private val ANIMATION_DURATION: Long = 400
+    private val ANIMATION_DURATION: Long = 4000
     private var mBuilder: Builder? = null
     private val sparseArray = SparseArray<Bitmap>()
 
@@ -133,8 +142,32 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
         mHeight = WidgetUtil.measureHeight(heightMeasureSpec, mHeight)
         setMeasuredDimension(mWidth, mHeight)
         mCicleRectF = RectF(0f, 0f, mWidth.toFloat(), mHeight.toFloat())
-        currentX = getXByPosition(currentPosition, 0).toInt()
+        currentX = getXByPosition(mShowPosition, 0).toInt()
         mItemWidth = mWidth / itemCount
+    }
+
+    private var isOpen: Boolean = true
+
+    public fun tocenter() {
+        if (!isMoving()) {
+            if (isOpen) {
+                state = State.CLOSE
+                if (currentX == mWidth / 2) {
+                    currentX = getXByPosition(1, 0).toInt()
+                }
+                moveAnimation(mWidth / 2, currentX)
+            } else {
+                state = State.OPEN
+                if (currentX == mWidth / 2) {
+                    currentX = getXByPosition(1, 0).toInt()
+                }
+                moveAnimation(currentX, mWidth / 2)
+            }
+        }
+    }
+
+    public enum class State {
+        OPEN, CLOSE
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -142,20 +175,64 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
         if (itemCount == 0) {
             return
         }
+        if (isOpen && State.OPEN == state) {
+            drawNomal(canvas)
+        } else {
+            val text = mBuilder?.arrays!![mShowPosition - 1]
+            mTextPaint?.getTextBounds(text, 0, text.length, textRect)
+            mTextPaint?.alpha = MAX_ALPHA
+            mTextPaint?.color = mBuilder?.selectedTextColor!!
+            var process = mProcess
+            if (State.OPEN == state) {
+                process = 1 - mProcess
+            }
+            var diection = 1
+            var showX = getXByPosition(mShowPosition, 0).toInt()
+            if (showX > mWidth / 2) {
+                diection = -1
+            } else if (showX == mWidth / 2) {
+                diection = 0
+            }
+            var offset = (mWidth / 2 - mRadius) * process
+            var right = mWidth - offset
+            var textStart = getXByPosition(mShowPosition, textRect.width() / 2) + diection * offset
+            var cicleStart = getXByPosition(mShowPosition, 0) + diection * offset
+
+            if (!isOpen) {
+                textStart = -diection * offset
+                cicleStart = -diection * offset
+            }
+
+            mCicleRectF = RectF(offset, 0f, right, mHeight.toFloat())
+            canvas.drawText(
+                text,
+                textStart,
+                (mRadius + textRect.height() / 2).toFloat(),
+                mTextPaint
+            )
+            drawbackGround(canvas)
+            drawSelctedTag(
+                canvas,
+                cicleStart
+            )
+        }
+    }
+
+    private fun drawNomal(canvas: Canvas) {
         drawbackGround(canvas)
-        drawSelctedTag(canvas)
+        drawSelctedTag(canvas, currentX + mProcessValus)
         for (i in 1 until itemCount + 1) {
             val bitmap = sparseArray[i]
             val text = mBuilder?.arrays!![i - 1]
             mTextPaint?.getTextBounds(text, 0, text.length, textRect)
-            if (currentPosition != i && mLastPosition != i) {
+            if (mShowPosition != i && mLastPosition != i) {
                 mBitmapPaint.alpha = MAX_ALPHA
                 canvas.drawBitmap(
                     bitmap, getXByPosition(i, bitmap.width / 2),
                     (mHeight / 2 - bitmap.height / 2).toFloat(),
                     mBitmapPaint
                 )
-            } else if (currentPosition != i && mLastPosition == i) {
+            } else if (mShowPosition != i && mLastPosition == i) {
                 if (mBuilder?.unSelectedTextColor != 0) {
                     mTextPaint.color = mBuilder?.unSelectedTextColor!!
                 } else {
@@ -174,7 +251,7 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
                     mHeight / 2 - bitmap.height / 2 + bitmap.height * (1 - mProcess),
                     mBitmapPaint
                 )
-            } else if (currentPosition == i) {
+            } else if (mShowPosition == i) {
                 if (mBuilder?.selectedTextColor != 0) {
                     mTextPaint.color = mBuilder?.selectedTextColor!!
                 }
@@ -194,11 +271,12 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
                 }
             }
         }
+
     }
 
-    private fun drawSelctedTag(canvas: Canvas) {
+    private fun drawSelctedTag(canvas: Canvas, start: Float) {
         canvas.drawCircle(
-            currentX + mProcessValus,
+            start,
             mHeight / 2.toFloat(),
             (mRadius - 1).toFloat(),
             mCiclePaint
@@ -234,7 +312,7 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
     /**
      * anmate view
      */
-    private fun moveAnimation(toTargetX: Int) {
+    private fun moveAnimation(toTargetX: Int, currentX: Int) {
         targetX = toTargetX
         var totalValus = toTargetX - currentX
         valueAnimator.setFloatValues(0f, totalValus.toFloat())
@@ -258,7 +336,9 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
                 val clickX: Int = getTargetX(e!!.x)
                 Log.e(TAG, "$currentX  click x $clickX")
                 if (!isMoving() && currentX != clickX) {
-                    moveAnimation(clickX)
+                    state = State.OPEN
+                    isOpen = true
+                    moveAnimation(clickX, currentX)
                 }
                 return true
             }
@@ -273,11 +353,10 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
     fun setSelection(position: Int) {
         var realPosition = position + 1
         Log.e(TAG, realPosition.toString())
-        if (realPosition in 1 until itemCount + 1 && realPosition != currentPosition && !isMoving()) {
-            moveAnimation(getXByPosition(realPosition, 0).toInt())
+        if (realPosition in 1 until itemCount + 1 && realPosition != mShowPosition && !isMoving()) {
+            moveAnimation(getXByPosition(realPosition, 0).toInt(), currentX)
         }
     }
-
 
     class Builder(private val context: Context) {
         var height = 120
