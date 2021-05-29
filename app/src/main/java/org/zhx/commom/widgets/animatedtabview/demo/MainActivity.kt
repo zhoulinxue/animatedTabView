@@ -20,7 +20,7 @@ class MainActivity : AppCompatActivity(), AnimatedTabView.OnItemChangeLisenter {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        var builder = AnimatedTabView.Builder(this)
+        var builder = AnimatedTabView.Builder(this,)
         builder.height = 120
         builder.arrays = resources.getStringArray(R.array.tab_item_array)
         builder.images = images
@@ -37,7 +37,7 @@ class MainActivity : AppCompatActivity(), AnimatedTabView.OnItemChangeLisenter {
             bottom_tabView.setSelection(position)
         }
 
-        var builder2 = AnimatedTabView.Builder(this)
+        var builder2 = AnimatedTabView.Builder(this,)
         builder2.height = 120
         builder2.arrays = resources.getStringArray(R.array.tab_item_array)
         builder2.images = images
@@ -48,10 +48,24 @@ class MainActivity : AppCompatActivity(), AnimatedTabView.OnItemChangeLisenter {
 
         bottom_tabView.setBuilder(builder2)
 
+        center_btn.text = getTextByStatus(view)
         center_btn.setOnClickListener {
             // must set backgroundColor
             view.tocenter()
+            center_btn.text = getTextByStatus(view)
         }
+    }
+
+    private fun getTextByStatus(view: AnimatedTabView): CharSequence? {
+        return String.format(
+            getString(R.string.animation_format),
+            if (view.state != AnimatedTabView.State.CLOSE) {
+                getString(R.string.close)
+            } else {
+                getString(R.string.open)
+            }
+        )
+
     }
 
     override fun onItemSelected(position: Int) {
