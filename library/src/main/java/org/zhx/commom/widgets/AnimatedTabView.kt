@@ -178,8 +178,8 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
         } else {
             val text = mBuilder?.arrays!![mShowPosition - 1]
             mTextPaint?.getTextBounds(text, 0, text.length, textRect)
-            mTextPaint?.alpha = MAX_ALPHA
-            mTextPaint?.color = mBuilder?.selectedTextColor!!
+            mTextPaint.alpha = MAX_ALPHA
+            mTextPaint.color = mBuilder?.selectedTextColor!!
             var process = mProcess
             if (State.OPEN == state) {
                 process = 1 - mProcess
@@ -201,19 +201,23 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
                 textStart = (mWidth / 2).toFloat() - textRect.width() / 2
                 cicleStart = (mWidth / 2).toFloat()
             }
+            drawbackGround(canvas)
+            drawSelctedTag(
+                canvas,
+                cicleStart
+            )
+            canvas.drawText(
+                text,
+                textStart,
+                (mRadius + textRect.height() / 2).toFloat(),
+                mTextPaint)
 
+            if (State.CLOSE == state) {
+                mBitmapPaint.alpha = MAX_ALPHA - currentAlpha
+            } else {
+                mBitmapPaint.alpha = currentAlpha
+            }
             for (i in 1 until itemCount + 1) {
-                if (State.CLOSE == state) {
-                    mBitmapPaint.alpha = MAX_ALPHA - currentAlpha
-                } else {
-                    mBitmapPaint.alpha = currentAlpha
-                }
-                canvas.drawText(
-                    text,
-                    textStart,
-                    (mRadius + textRect.height() / 2).toFloat(),
-                    mTextPaint
-                )
                 var positionX = getXByPosition(i, 0).toInt()
                 val bitmap = sparseArray[i]
                 // drawbitmap  except text
@@ -235,11 +239,7 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
                     )
                 }
             }
-            drawbackGround(canvas)
-            drawSelctedTag(
-                canvas,
-                cicleStart
-            )
+
         }
     }
 
@@ -378,7 +378,10 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
     fun setSelection(position: Int) {
         var realPosition = position + 1
         Log.e(TAG, realPosition.toString())
-        if (realPosition in 1 until itemCount + 1 && realPosition != mShowPosition && !isMoving()) {
+        if (realPosition in 1 until itemCount + 1
+            && realPosition != mShowPosition
+            && !isMoving()
+            && state==State.NORMAL) {
             moveAnimation(getXByPosition(realPosition, 0).toInt(), currentX)
         }
     }
