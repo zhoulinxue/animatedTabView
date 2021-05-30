@@ -17,7 +17,7 @@ allprojects {
 ```
 ```
 dependencies {
-	        implementation 'com.github.zhoulinxue:animatedTabView:1.0.2'
+	        implementation 'com.github.zhoulinxue:animatedTabView:1.0.4'
 	}
 ```
 ## 代码调用 (二选一 代码或xml)
@@ -39,13 +39,13 @@ class MainActivity : AppCompatActivity(), AnimatedTabView.OnItemChangeLisenter {
         R.drawable.ic_home_white_36dp,
         R.drawable.ic_visibility_white_36dp,
         R.drawable.ic_shopping_cart_white_36dp,
-        R.drawable.ic_perm_identity_white_36dp
+//        R.drawable.ic_perm_identity_white_36dp
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        var builder = AnimatedTabView.Builder(this)
+        var builder = AnimatedTabView.Builder(this,)
         builder.height = 120
         builder.arrays = resources.getStringArray(R.array.tab_item_array)
         builder.images = images
@@ -57,12 +57,12 @@ class MainActivity : AppCompatActivity(), AnimatedTabView.OnItemChangeLisenter {
         var view: AnimatedTabView = builder.build()
         test_table_container.addView(view)
         tab_btn.setOnClickListener {
-            var position = Random.nextInt(images.size + 1) - 1
+            var position = Random.nextInt(images.size)
             view.setSelection(position)
             bottom_tabView.setSelection(position)
         }
 
-        var builder2 = AnimatedTabView.Builder(this)
+        var builder2 = AnimatedTabView.Builder(this,)
         builder2.height = 120
         builder2.arrays = resources.getStringArray(R.array.tab_item_array)
         builder2.images = images
@@ -72,6 +72,25 @@ class MainActivity : AppCompatActivity(), AnimatedTabView.OnItemChangeLisenter {
         builder2.setOnItemClick(this)
 
         bottom_tabView.setBuilder(builder2)
+
+        center_btn.text = getTextByStatus(view)
+        center_btn.setOnClickListener {
+            // must set backgroundColor
+            view.tocenter()
+            center_btn.text = getTextByStatus(view)
+        }
+    }
+
+    private fun getTextByStatus(view: AnimatedTabView): CharSequence? {
+        return String.format(
+            getString(R.string.animation_format),
+            if (view.state != AnimatedTabView.State.CLOSE) {
+                getString(R.string.close)
+            } else {
+                getString(R.string.open)
+            }
+        )
+
     }
 
     override fun onItemSelected(position: Int) {
