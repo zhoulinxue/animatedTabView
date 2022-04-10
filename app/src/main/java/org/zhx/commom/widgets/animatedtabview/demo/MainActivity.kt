@@ -69,10 +69,14 @@ class MainActivity : AppCompatActivity(), AnimatedTabView.OnItemChangeLisenter {
     }
 
     override fun onItemSelected(position: Int) {
-        Log.e("AnimatedTabView", "itemclick    $position")
+//        Log.e("AnimatedTabView", "itemclick    $position")
     }
 
     override fun onMoveingProcess(currentPosition: Int, targetPosition: Int, process: Float) {
         Log.e("AnimatedTabView", "currentPosition    $currentPosition , targetPosition $targetPosition ， process $process")
+    }
+
+    override fun onSeletionCancel(position: Int) {
+        Log.e("AnimatedTabView", "onSeletionCancel,position    $position")
     }
 }

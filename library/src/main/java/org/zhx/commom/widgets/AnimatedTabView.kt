@@ -100,15 +100,17 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
         valueAnimator?.addUpdateListener(this)
         valueAnimator?.addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationEnd(animation: Animator) {
+                Log.e(TAG, " onAnimationEnd")
+                currentX = getMovingX().toInt()
                 mProcess = 1f
                 mProcessValus = 0f
-                currentX = getXByPosition(mShowPosition, 0).toInt()
                 if (State.OPEN == state) {
                     state = State.NORMAL
                 }
             }
 
             override fun onAnimationStart(animation: Animator) {
+                Log.e(TAG, " onAnimationStart")
                 mLastPosition = mShowPosition
                 targetPosition = getCurrentPositionByX(targetX)
                 if (State.NORMAL == state) {
@@ -217,6 +219,7 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
             } else {
                 mBitmapPaint.alpha = currentAlpha
             }
+
             for (i in 1 until itemCount + 1) {
                 var positionX = getXByPosition(i, 0).toInt()
                 val bitmap = sparseArray[i]
@@ -366,7 +369,13 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
             override fun onSingleTapUp(e: MotionEvent?): Boolean {
                 val clickX: Int = getTargetX(e!!.x)
                 Log.e(TAG, "$currentX  click x $clickX")
-                if (!isMoving() && currentX != clickX) {
+                if (currentX != clickX) {
+                    if(isMoving()) {
+                        mBuilder?.onItemClick?.onSeletionCancel(mShowPosition - 1)
+                        valueAnimator.cancel()
+                        currentX = getMovingX().toInt()
+                        mShowPosition = getCurrentPositionByX(currentX)
+                    }
                     state = State.NORMAL
                     moveAnimation(clickX, currentX)
                 }
@@ -397,7 +406,7 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
         var unSelectedTextColor: Int = 0
         lateinit var arrays: Array<String>
         lateinit var images: Array<Int>
-        var duration: Long = 400
+        var duration: Long = 300
 
         fun setDuration(duration: Long): Builder {
             this.duration = duration
@@ -488,6 +497,7 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
 
     interface OnItemChangeLisenter {
         fun onItemSelected(position: Int)
+        fun onSeletionCancel(position: Int)
         fun onMoveingProcess(currentPosition:Int,targetPosition:Int,process: Float)
     }
 
