@@ -41,8 +41,10 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
      */
     private val mCiclePaint: Paint by lazy {
         Paint().also {
-            it.color = resources.getColor(R.color.white)
+            it.color = Color.WHITE
             it.style = Paint.Style.STROKE
+            it.isAntiAlias = true
+            it.strokeWidth = strokWidth
         }
 
     }
@@ -50,6 +52,7 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
         var paint = Paint()
         paint.color = Color.WHITE
         paint.style = Paint.Style.FILL
+        paint.isAntiAlias = true
         paint.textSize = 30f
         paint
     }
@@ -84,6 +87,7 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
 
     // animation process
     private var mProcess = 1f
+    private var strokWidth = 2f
 
     // translation valus
     private var mProcessValus = 0f
@@ -311,7 +315,7 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
         canvas.drawCircle(
             start,
             mHeight / 2.toFloat(),
-            (mRadius - 1).toFloat(),
+            (mRadius - strokWidth).toFloat(),
             mCiclePaint
         ) //item cicle
     }
