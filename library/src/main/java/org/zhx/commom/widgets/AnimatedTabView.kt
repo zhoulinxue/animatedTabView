@@ -246,7 +246,7 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
     private fun drawNomal(canvas: Canvas) {
         mBackgroundRectF = RectF(0f, 0f, mWidth.toFloat(), mHeight.toFloat())
         drawbackGround(canvas)
-        drawSelctedTag(canvas, currentX + mProcessValus)
+        drawSelctedTag(canvas, getMovingX())
         for (i in 1 until itemCount + 1) {
             val bitmap = sparseArray[i]
             val text = mBuilder?.arrays!![i - 1]
@@ -300,6 +300,10 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
 
     }
 
+    private fun getMovingX(): Float {
+        return currentX + mProcessValus
+    }
+
     private fun drawSelctedTag(canvas: Canvas, start: Float) {
         canvas.drawCircle(
             start,
@@ -351,6 +355,7 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
         mProcessValus = animation.animatedValue as Float
         if (mProcessValus != 0f) {
             mProcess = mProcessValus / (targetX - currentX)
+            mBuilder?.onItemClick?.onMoveingProcess(mLastPosition-1,mShowPosition-1,mProcess)
             currentAlpha = (MAX_ALPHA * mProcess).toInt()
             invalidate()
         }
@@ -483,6 +488,7 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
 
     interface OnItemChangeLisenter {
         fun onItemSelected(position: Int)
+        fun onMoveingProcess(currentPosition:Int,targetPosition:Int,process: Float)
     }
 
 
