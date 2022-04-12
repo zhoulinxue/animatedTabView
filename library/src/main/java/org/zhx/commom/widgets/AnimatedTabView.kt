@@ -99,13 +99,18 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
     private val MAX_ALPHA = 255
     private var currentAlpha = MAX_ALPHA
     public var state: State = State.NORMAL
+    private var isCancel = false
     private val valueAnimator: ValueAnimator by lazy {
         var valueAnimator = ValueAnimator()
         valueAnimator?.addUpdateListener(this)
         valueAnimator?.addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationEnd(animation: Animator) {
                 Log.e(TAG, " onAnimationEnd")
-                currentX = getMovingX().toInt()
+                if(!isCancel) {
+                    currentX = getXByPosition(mShowPosition,0).toInt()
+                }
+
+                isCancel = false
                 mProcess = 1f
                 mProcessValus = 0f
                 if (State.OPEN == state) {
@@ -164,6 +169,7 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
                     if (currentX == mWidth / 2) {
                         currentX = getXByPosition(1, 0).toInt()
                     }
+
                     moveAnimation(mWidth / 2, currentX)
                 }
             }
@@ -315,7 +321,7 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
         canvas.drawCircle(
             start,
             mHeight / 2.toFloat(),
-            (mRadius - strokWidth).toFloat(),
+            mRadius - strokWidth,
             mCiclePaint
         ) //item cicle
     }
@@ -376,6 +382,7 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
                 if (currentX != clickX) {
                     if(isMoving()) {
                         mBuilder?.onItemClick?.onSeletionCancel(mShowPosition - 1)
+                        isCancel = true
                         valueAnimator.cancel()
                         currentX = getMovingX().toInt()
                         mShowPosition = getCurrentPositionByX(currentX)
