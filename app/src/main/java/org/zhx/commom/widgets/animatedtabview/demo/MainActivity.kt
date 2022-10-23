@@ -1,12 +1,11 @@
 package org.zhx.commom.widgets.animatedtabview.demo
 
-import android.app.ActionBar
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import kotlinx.android.synthetic.main.activity_main.*
 import org.zhx.commom.widgets.AnimatedTabView
+import org.zhx.commom.widgets.animatedtabview.demo.databinding.ActivityMainBinding
 import kotlin.random.Random
 
 class MainActivity : AppCompatActivity(), AnimatedTabView.OnItemChangeLisenter {
@@ -19,7 +18,9 @@ class MainActivity : AppCompatActivity(), AnimatedTabView.OnItemChangeLisenter {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        var binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
         var builder = AnimatedTabView.Builder(this,)
         builder.height = 120
         builder.arrays = resources.getStringArray(R.array.tab_item_array)
@@ -30,11 +31,12 @@ class MainActivity : AppCompatActivity(), AnimatedTabView.OnItemChangeLisenter {
             resources.getColor(R.color.black_30) // default #30000000   不设置 就不绘制 背景
         builder.setOnItemClick(this)
         var view: AnimatedTabView = builder.build()
-        test_table_container.addView(view)
-        tab_btn.setOnClickListener {
+
+        binding.testTableContainer.addView(view)
+        binding.tabBtn.setOnClickListener {
             var position = Random.nextInt(images.size)
             view.setSelection(position)
-            bottom_tabView.setSelection(position)
+            binding.bottomTabView.setSelection(position)
         }
 
         var builder2 = AnimatedTabView.Builder(this,)
@@ -46,13 +48,13 @@ class MainActivity : AppCompatActivity(), AnimatedTabView.OnItemChangeLisenter {
 //        builder2.backgroundColor =resources.getColor(R.color.black_30) // default #30000000   不设置 就不绘制 背景
         builder2.setOnItemClick(this)
 
-        bottom_tabView.setBuilder(builder2)
+        binding.bottomTabView.setBuilder(builder2)
 
-        center_btn.text = getTextByStatus(view)
-        center_btn.setOnClickListener {
+        binding.centerBtn.text = getTextByStatus(view)
+       binding.centerBtn.setOnClickListener {
             // must set backgroundColor
             view.tocenter()
-            center_btn.text = getTextByStatus(view)
+            binding.centerBtn.text = getTextByStatus(view)
         }
     }
 

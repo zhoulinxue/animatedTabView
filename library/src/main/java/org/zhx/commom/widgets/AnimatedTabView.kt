@@ -62,7 +62,7 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
     private val TAG = AnimatedTabView::class.java.simpleName
 
     //item  count
-    private var itemCount = 0
+    private var itemCount = -1
 
     // radius
     private var mRadius = 0
@@ -170,7 +170,7 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        if (itemCount == 0) {
+        if (itemCount < 0) {
             return
         }
         if (State.NORMAL == state) {
@@ -325,6 +325,8 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
      *get current position by x
      */
     private fun getXByPosition(i: Int, offSet: Int): Float {
+        Log.e(TAG, "getXByPosition, itemCount:$itemCount" + "hashcode: "+hashCode())
+
         return ((mWidth / itemCount) * i - (mWidth / itemCount) / 2 - offSet).toFloat()
     }
 
@@ -460,10 +462,17 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
     }
 
     private fun notifyParamchanage() {
+
         if (mBuilder!!.arrays == null || mBuilder!!.images == null) {
+            Log.e(TAG, "notifyParamchanage, arrays is empty")
+
             return
         }
+
         itemCount = mBuilder!!.arrays.size.coerceAtMost(mBuilder!!.images.size)
+
+        Log.e(TAG, "notifyParamchanage, itemCount:$itemCount" + "hashcode: "+hashCode())
+
         mItemHeight = mBuilder!!.height
         mHeight = mItemHeight + paddingTop + paddingBottom
         mWidth = if (mBuilder!!.width == 0) {
