@@ -11,7 +11,6 @@ import android.util.SparseArray
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
-import java.util.*
 
 
 class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
@@ -43,6 +42,7 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
         Paint().also {
             it.color = resources.getColor(R.color.white)
             it.style = Paint.Style.STROKE
+            it.strokeWidth = 2f
         }
 
     }
@@ -87,7 +87,9 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
 
     // translation valus
     private var mProcessValus = 0f
-    private var currentX = mRadius
+    private var positionX = mRadius
+    private var currentX = positionX.toFloat()
+    private var startX = positionX.toFloat()
     private var targetX = 0
     private var targetPosition = 1
     private var mShowPosition = targetPosition
@@ -100,17 +102,20 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
         valueAnimator?.addUpdateListener(this)
         valueAnimator?.addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationEnd(animation: Animator) {
+                Log.e(TAG,"onAnimationEnd")
                 mProcess = 1f
                 mProcessValus = 0f
-                currentX = getXByPosition(mShowPosition, 0).toInt()
+                positionX = getXByPosition(mShowPosition, 0).toInt()
                 if (State.OPEN == state) {
                     state = State.NORMAL
                 }
+
+                invalidate()
             }
 
             override fun onAnimationStart(animation: Animator) {
+                Log.e(TAG,"onAnimationStart")
                 mLastPosition = mShowPosition
-                targetPosition = getCurrentPositionByX(targetX)
                 if (State.NORMAL == state) {
                     mShowPosition = targetPosition
                     Log.e(TAG, "$mLastPosition   current : $mShowPosition")
@@ -139,7 +144,9 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
         mWidth = WidgetUtil.measureWidth(widthMeasureSpec, mWidth)
         mHeight = WidgetUtil.measureHeight(heightMeasureSpec, mHeight)
         setMeasuredDimension(mWidth, mHeight)
-        currentX = getXByPosition(mShowPosition, 0).toInt()
+        positionX = getXByPosition(mShowPosition, 0).toInt()
+        currentX = positionX.toFloat()
+        startX = currentX
         mItemWidth = mWidth / itemCount
     }
 
@@ -148,17 +155,17 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
             when {
                 State.NORMAL == state -> {
                     state = State.CLOSE
-                    if (currentX == mWidth / 2) {
-                        currentX = getXByPosition(1, 0).toInt()
+                    if (positionX == mWidth / 2) {
+                        positionX = getXByPosition(1, 0).toInt()
                     }
-                    moveAnimation(mWidth / 2, currentX)
+                    moveAnimation(mWidth / 2, positionX)
                 }
                 State.CLOSE == state -> {
                     state = State.OPEN
-                    if (currentX == mWidth / 2) {
-                        currentX = getXByPosition(1, 0).toInt()
+                    if (positionX == mWidth / 2) {
+                        positionX = getXByPosition(1, 0).toInt()
                     }
-                    moveAnimation(mWidth / 2, currentX)
+                    moveAnimation(mWidth / 2, positionX)
                 }
             }
         }
@@ -246,7 +253,7 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
     private fun drawNomal(canvas: Canvas) {
         mBackgroundRectF = RectF(0f, 0f, mWidth.toFloat(), mHeight.toFloat())
         drawbackGround(canvas)
-        drawSelctedTag(canvas, currentX + mProcessValus)
+        drawSelctedTag(canvas, currentX)
         for (i in 1 until itemCount + 1) {
             val bitmap = sparseArray[i]
             val text = mBuilder?.arrays!![i - 1]
@@ -337,23 +344,47 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
         return targetX / (mWidth / itemCount) + 1
     }
 
+    private fun moveAnimation(toTargetX: Int, currentX: Int) {
+        targetX = toTargetX
+        targetPosition = getCurrentPositionByX(targetX)
+        var totalValus = toTargetX - currentX
+        startX = positionX.toFloat()
+        moveAnimation(totalValus.toFloat(),0)
+    }
+
+    private fun moveOnMoveing(toTargetX: Int, currentX: Int,duration: Long) {
+        targetX = toTargetX
+        targetPosition = getCurrentPositionByX(targetX)
+        startX = currentX.toFloat()
+        var totalValus = toTargetX - currentX
+        Log.e(TAG, "moveOnMoveing, startX: $startX , totalValus: $totalValus" )
+        moveAnimation(totalValus.toFloat(),duration)
+    }
+
     /**
      * anmate view
      */
-    private fun moveAnimation(toTargetX: Int, currentX: Int) {
-        targetX = toTargetX
-        var totalValus = toTargetX - currentX
-        valueAnimator.setFloatValues(0f, totalValus.toFloat())
-        valueAnimator?.duration =mBuilder?.duration!!
+    private fun moveAnimation(totalValus: Float, duration: Long) {
+        valueAnimator.setFloatValues(0f, totalValus)
+
+        if (0L != duration) {
+            valueAnimator.duration = duration
+        } else {
+            valueAnimator?.duration = mBuilder?.duration!!
+        }
+
         valueAnimator?.start()
     }
 
 
     override fun onAnimationUpdate(animation: ValueAnimator) {
         mProcessValus = animation.animatedValue as Float
+
+        Log.e(TAG,"onAnimationUpdate, mProcessValue: $mProcessValus")
         if (mProcessValus != 0f) {
-            mProcess = mProcessValus / (targetX - currentX)
+            mProcess = mProcessValus / (targetX - startX)
             currentAlpha = (MAX_ALPHA * mProcess).toInt()
+            currentX = startX + mProcessValus
             invalidate()
         }
     }
@@ -362,17 +393,36 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
         GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
             override fun onSingleTapUp(e: MotionEvent?): Boolean {
                 val clickX: Int = getTargetX(e!!.x)
-                Log.e(TAG, "$currentX  click x $clickX")
-                if (!isMoving() && currentX != clickX) {
-                    state = State.NORMAL
-                    moveAnimation(clickX, currentX)
+                Log.e(TAG, "onSingleTapUp, positionX: $positionX , clicks: $clickX ,targetX: $targetX, isMoving:" + isMoving())
+
+                if (targetX != clickX) {
+                    if (isMoving()) {
+                        targetX = clickX
+                        targetPosition = getCurrentPositionByX(targetX)
+                        mShowPosition = targetPosition
+                        var duration= (mProcess*valueAnimator.duration).toLong()
+
+                        if (duration < 0L || positionX != targetX) {
+                            duration = 0L
+                        }
+
+                        valueAnimator.cancel()
+                        moveOnMoveing(clickX,currentX.toInt(),duration)
+                    } else if (positionX != clickX){
+                        state = State.NORMAL
+                        moveAnimation(clickX, positionX)
+                    }
                 }
+
+
+
+
                 return true
             }
         });
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        Log.e(TAG, "  event " + event.x)
+//        Log.e(TAG, "  event " + event.x)
         mGestureDetector.onTouchEvent(event)
         return true
     }
@@ -384,7 +434,7 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
             && realPosition != mShowPosition
             && !isMoving()
             && state==State.NORMAL) {
-            moveAnimation(getXByPosition(realPosition, 0).toInt(), currentX)
+            moveAnimation(getXByPosition(realPosition, 0).toInt(), positionX)
         }
     }
 
@@ -462,7 +512,6 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
     }
 
     private fun notifyParamchanage() {
-
         if (mBuilder!!.arrays == null || mBuilder!!.images == null) {
             Log.e(TAG, "notifyParamchanage, arrays is empty")
 
@@ -496,6 +545,4 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
     interface OnItemChangeLisenter {
         fun onItemSelected(position: Int)
     }
-
-
 }
