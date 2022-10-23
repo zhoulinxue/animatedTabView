@@ -42,6 +42,7 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
         Paint().also {
             it.color = resources.getColor(R.color.white)
             it.style = Paint.Style.STROKE
+            it.isAntiAlias = true
             it.strokeWidth = 2f
         }
 
@@ -106,19 +107,25 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
                 mProcess = 1f
                 mProcessValus = 0f
                 positionX = getXByPosition(mShowPosition, 0).toInt()
+
                 if (State.OPEN == state) {
+                    currentX = positionX.toFloat()
                     state = State.NORMAL
                 }
 
+                targetX =0
                 invalidate()
             }
 
             override fun onAnimationStart(animation: Animator) {
                 Log.e(TAG,"onAnimationStart")
                 mLastPosition = mShowPosition
+
                 if (State.NORMAL == state) {
                     mShowPosition = targetPosition
+
                     Log.e(TAG, "$mLastPosition   current : $mShowPosition")
+
                     if (mLastPosition != mShowPosition) {
                         mBuilder?.onItemClick?.onItemSelected(mShowPosition - 1)
                     }
@@ -155,16 +162,20 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
             when {
                 State.NORMAL == state -> {
                     state = State.CLOSE
+
                     if (positionX == mWidth / 2) {
                         positionX = getXByPosition(1, 0).toInt()
                     }
+
                     moveAnimation(mWidth / 2, positionX)
                 }
                 State.CLOSE == state -> {
                     state = State.OPEN
+
                     if (positionX == mWidth / 2) {
                         positionX = getXByPosition(1, 0).toInt()
                     }
+
                     moveAnimation(mWidth / 2, positionX)
                 }
             }
@@ -246,7 +257,6 @@ class AnimatedTabView : View, ValueAnimator.AnimatorUpdateListener {
                     )
                 }
             }
-
         }
     }
 
