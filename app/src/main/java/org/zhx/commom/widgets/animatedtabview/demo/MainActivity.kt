@@ -21,7 +21,7 @@ class MainActivity : AppCompatActivity(), AnimatedTabView.OnItemChangeLisenter {
         var binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        var builder = AnimatedTabView.Builder(this,)
+        var builder = AnimatedTabView.Builder(this)
         builder.height = 120
         builder.arrays = resources.getStringArray(R.array.tab_item_array)
         builder.images = images
@@ -39,7 +39,7 @@ class MainActivity : AppCompatActivity(), AnimatedTabView.OnItemChangeLisenter {
             binding.bottomTabView.setSelection(position)
         }
 
-        var builder2 = AnimatedTabView.Builder(this,)
+        var builder2 = AnimatedTabView.Builder(this)
         builder2.height = 120
         builder2.arrays = resources.getStringArray(R.array.tab_item_array)
         builder2.images = images
